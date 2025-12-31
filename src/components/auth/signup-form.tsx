@@ -33,7 +33,7 @@ export default function SignupForm() {
       const { error } = await signUp(formData)
       
       if (error) {
-        setError(error.message || 'An error occurred during signup')
+        setError(error || 'An error occurred during signup')
       } else {
         setSuccess(true)
       }

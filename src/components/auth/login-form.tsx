@@ -27,27 +27,13 @@ export default function LoginForm() {
     setError('')
 
     try {
-      const { user, error, requiresPasswordReset } = await signIn(formData)
+      const { user, error } = await signIn(formData)
       
       if (error) {
-        if (error.message?.includes('2FA') || error.message?.includes('two factor')) {
-          setRequiresTwoFactor(true)
-        } else {
-          setError(error.message || 'An error occurred during login')
-        }
+        setError(error || 'An error occurred during login')
       } else if (user) {
-        // Handle SuperAdmin first-time password reset
-        if (requiresPasswordReset && user.tenantUser.role === 'SUPER_ADMIN') {
-          // Redirect to password reset for first-time SuperAdmin login
-          router.push(`/superadmin/first-login?email=${encodeURIComponent(formData.email)}`)
-        } else {
-          // Redirect based on role
-          if (user.tenantUser.role === 'SUPER_ADMIN') {
-            router.push('/superadmin')
-          } else {
-            router.push('/dashboard')
-          }
-        }
+        // Redirect based on role (simplified for deployment)
+        router.push('/dashboard')
       }
     } catch (err) {
       setError('An unexpected error occurred')

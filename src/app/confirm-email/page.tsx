@@ -1,10 +1,11 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { confirmEmail } from '@/lib/auth'
 
-export default function ConfirmEmailPage() {
+function ConfirmEmailContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
   const [message, setMessage] = useState('')
   const searchParams = useSearchParams()
@@ -21,7 +22,7 @@ export default function ConfirmEmailPage() {
 
     const confirm = async () => {
       try {
-        const { success, error } = await confirmEmail(token)
+        const { success, error } = await confirmEmail()
         
         if (success) {
           setStatus('success')
@@ -103,5 +104,17 @@ export default function ConfirmEmailPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function ConfirmEmailPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <ConfirmEmailContent />
+    </Suspense>
   )
 }
