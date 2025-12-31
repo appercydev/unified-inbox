@@ -58,7 +58,7 @@ export async function signUp(data: SignupData): Promise<{ user: any; error: any 
   }
 }
 
-export async function signIn(data: LoginData): Promise<{ user: AuthUser | null; error: any }> {
+export async function signIn(data: LoginData): Promise<{ user: AuthUser | null; error: any; requiresPasswordReset?: boolean }> {
   try {
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email: data.email,
@@ -87,6 +87,22 @@ export async function signIn(data: LoginData): Promise<{ user: AuthUser | null; 
 
     if (tenantError) throw tenantError
 
+    // Check if SuperAdmin needs first-time password reset
+    let requiresPasswordReset = false
+    if (tenantUser.role === 'SUPER_ADMIN' && tenantUser.email === 'appercydev@gmail.com') {
+      // Check if this is the first login (you might want to add a flag for this)
+      const { data: passwordResets } = await supabase
+        .from('password_resets')
+        .select('id')
+        .eq('user_id', authData.user.id)
+        .eq('used_at', null)
+
+      // If no password resets have been used, this might be first login
+      if (!passwordResets || passwordResets.length === 0) {
+        requiresPasswordReset = true
+      }
+    }
+
     // Update last login
     await supabase
       .from('tenant_users')
@@ -100,9 +116,10 @@ export async function signIn(data: LoginData): Promise<{ user: AuthUser | null; 
         tenant,
       },
       error: null,
+      requiresPasswordReset,
     }
   } catch (error) {
-    return { user: null, error }
+    return { user: null, error, requiresPasswordReset: false }
   }
 }
 
